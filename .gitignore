@@ -14,10 +14,3 @@ __pycache__/
 # folder is a few hundred megabytes of bundled NumPy and SciPy.
 build/
 dist/
-
-# Development scaffolding, kept locally and not published.
-#
-# This is a staged agent prompt — the working method behind it is not something
-# to put on display until it exists as a codebase rather than a habit. Delete
-# this line if that changes.
-PROMPT-COLLISIONS.md

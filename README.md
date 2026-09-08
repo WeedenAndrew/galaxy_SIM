@@ -36,7 +36,6 @@ its source build fails on the removal of `distutils`. pygame-ce is a drop-in —
 ## Controls
 
 | | |
-|---|---|
 | drag | orbit the camera |
 | scroll | zoom |
 | `G` | **reverse** stellar self-gravity — stars repel, halo and black hole still attract |

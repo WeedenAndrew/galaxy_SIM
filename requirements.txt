@@ -1,0 +1,10 @@
+# pygame-ce, not pygame. Upstream pygame has no wheel for Python 3.14 and its
+# source build fails on the removal of distutils. pygame-ce is a drop-in:
+# `import pygame` is unchanged.
+pygame-ce>=2.5
+
+numpy>=1.24
+
+# Optional. gravity.py falls back to numpy.fft without it, at a cost of roughly
+# 4 fps on the reference machine. bench.py prints which backend is live.
+scipy>=1.11

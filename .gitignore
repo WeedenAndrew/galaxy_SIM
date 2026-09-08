@@ -1,0 +1,23 @@
+# The project-local virtual environment. 228 MB, and it exists because Codex's
+# sandbox cannot read the user-site packages under %APPDATA%. It is rebuildable
+# in one command and must never enter a commit.
+.venv/
+
+# Python bytecode.
+__pycache__/
+*.pyc
+
+# Benchmark output and crash logs written beside the executable.
+*.log
+
+# PyInstaller output. Rebuildable from GalaxySim.spec in one command; the dist
+# folder is a few hundred megabytes of bundled NumPy and SciPy.
+build/
+dist/
+
+# Development scaffolding, kept locally and not published.
+#
+# This is a staged agent prompt — the working method behind it is not something
+# to put on display until it exists as a codebase rather than a habit. Delete
+# this line if that changes.
+PROMPT-COLLISIONS.md

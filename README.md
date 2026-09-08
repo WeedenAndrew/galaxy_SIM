@@ -1,6 +1,6 @@
 # galaxy_SIM
 
-A self-gravitating spiral galaxy — 25,000 particles that actually pull on each
+A self-gravitating spiral galaxy 25,000 particles that actually pull on each
 other, in 3D, at 60 fps in Python.
 
 Gravity is solved on a particle mesh: the stars are smeared onto a grid,
@@ -9,8 +9,7 @@ the forces are interpolated back. That is how real galaxy simulations do it,
 and it is the only reason 25,000 mutually-attracting bodies run in NumPy at
 all — direct summation would be 312 million pair forces per frame.
 
-<!-- Add a screenshot here. It is the first thing anyone looks at and there
-     isn't one yet:  ![galaxy_SIM](docs/screenshot.png)  -->
+[galaxy_SIM](docs/screenshot.png)
 
 ## Run it
 
@@ -19,7 +18,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Or build a double-clickable executable — no Python needed on the target
+Or build a double-clickable executable no Python needed on the target
 machine:
 
 ```powershell
@@ -30,7 +29,7 @@ That produces `dist\GalaxySim\GalaxySim.exe`. See [Building](#building) for the
 two options in `GalaxySim.spec`.
 
 **`pygame-ce`, not `pygame`.** Upstream pygame has no wheel for Python 3.14 and
-its source build fails on the removal of `distutils`. pygame-ce is a drop-in —
+its source build fails on the removal of `distutils`. pygame-ce is a dropin 
 `import pygame` is unchanged.
 
 ## Controls
@@ -38,7 +37,7 @@ its source build fails on the removal of `distutils`. pygame-ce is a drop-in —
 | | |
 | drag | orbit the camera |
 | scroll | zoom |
-| `G` | **reverse** stellar self-gravity — stars repel, halo and black hole still attract |
+| `G` | **reverse** stellar self-gravity: stars repel; halo and black hole still attract |
 | `H` | collision flashes (decorative, default off) |
 | `A` | live mesh vs. analytic rails, useful as a control |
 | `SPACE` | pause |
@@ -56,7 +55,7 @@ detonate the galaxy in one frame.
 |---|---|
 | `config.py` | every constant, with its unit |
 | `galaxy.py` | initial star field, and velocity rebalancing against the mesh |
-| `gravity.py` | particle-mesh self-gravity — CIC, FFT Poisson, force interpolation |
+| `gravity.py` | particle-mesh self-gravity CIC, FFT Poisson, force interpolation |
 | `physics.py` | halo, softened black hole, mesh polarity, optional spiral, leapfrog |
 | `collisions.py` | same-cell proximity detection with guarded quantisation |
 | `flashes.py` | sampled detection and a fixed pool of decorative flashes |
@@ -76,11 +75,11 @@ a division, interpolate the forces back. Cost is O(N) plus O(M log M), every
 step is a single NumPy call, and it doesn't care how clustered the stars are.
 
 The FFT is periodic, so the box is padded to twice the galaxy's width in each
-axis — otherwise the galaxy is tidally torn by copies of itself.
+axis; otherwise, the galaxy is tidally torn by copies of itself.
 
 **The halo stays analytic.** A disc of only visible matter can't hold a flat
 rotation curve; that's the observation dark matter was invented to explain.
-Live disc inside a rigid halo is standard practice in N-body work.
+A live disc inside a rigid halo is standard practice in N-body work.
 
 ## Performance
 
@@ -119,17 +118,17 @@ The path there, from 40,000 stars at grid 32, which ran **32.6 fps**:
 | `STAR_COUNT` 40k → 25k | ~20% of render cost |
 | SciPy FFT backend | 1.8 ms |
 
-**Install SciPy.** The backend falls back to NumPy silently without it and
+**Install SciPy.** The backend falls back to NumPy silently without it, and
 `bench.py` prints which one is live. SciPy's transform is ~4x faster in
 isolation but worth only ~2 ms overall, because the FFT was never the bulk of
-the cost — of ~9.4 ms of particle mesh the split is weights 2.1, FFT 2.7,
+the cost — of ~9.4 ms of particle mesh, the split is weights 2.1, FFT 2.7,
 interpolation ~3.4, deposition 0.45.
 
 That historical 16.82 ms run was **0.15 ms over** the 16.67 ms budget.
 Repeated runs straddle the limit; treat headroom as roughly zero. The current
 five-seed comparison and default-off decision are recorded below.
 
-The bounds guards account for ~2.5 ms and are not optional — without them one
+The bounds guards account for ~2.5 ms and are not optional; without them, one
 escaped star silently corrupts the entire potential.
 
 Two things that cost more than they looked:
@@ -148,7 +147,7 @@ around 0.02 and *fall* over 195° of rotation. The disc is genuinely
 self-gravitating and genuinely stable — it just isn't doing anything
 interesting.
 
-The reason is resolution. At grid 32 a cell is 35 px, larger than the
+The reason is resolution. At grid 32, a cell is 35 px, larger than the
 structures a spiral would be made of, so the mesh smooths away exactly the
 scales that would go unstable. Getting emergent arms needs a finer grid and a
 colder disc, and grid 48 is already under 40 fps.
@@ -164,11 +163,11 @@ default:
 **Window drag freezes it.** Windows puts the process into a modal message loop
 while you drag a title bar and SDL gets no cycles until you let go. Every
 pygame application does this; it isn't fixable from inside the loop. What the
-`dt` clamp does prevent is the lurch afterwards — without it the integrator
+`dt` clamp does prevent is the lurch afterwards; without it the integrator
 gets one enormous step and flings the disc apart.
 
 **Also absent:** stars never age or change colour, there's no gas, no star
-formation, no mergers, and particles are 2.4e6 solar masses each at the current 25,000 count — far too
+formation, no mergers, and particles are 2.4e6 solar masses each at the current 25,000 count, far too
 heavy for real two-body encounters, which is part of why the mesh smooths them.
 
 ## Tuning
@@ -185,12 +184,12 @@ heavy for real two-body encounters, which is part of why the mesh smooths them.
 ## Black hole, polarity, and decorative collision flashes
 
 `COLLISIONS_ENABLED = False` is the default. Gate 4 measured **+1.552 ms/frame**
-for detection, flash updates/spawning and rendering, exceeding the **0.5 ms**
+for detection, flash updates/spawning, and rendering, exceeding the **0.5 ms**
 acceptance threshold. This is why flashes are off by default. Press **H**, next
 to **G** on the keyboard and in the key legend, to enable them; the HUD shows
-ON/OFF. Disabling clears the pool and bypasses detection, updates and flash
+ON/OFF. Disabling clears the pool and bypasses detection, updates, and flash
 rendering. Re-enabling starts fresh; rebuilding clears flashes but preserves
-the enabled state. While paused, existing flashes fade in wall-clock time and
+the enabled state. While paused, existing flashes fade in wall-clock time, and
 particles are not resampled.
 
 Measured on this Windows machine at 25,000 particles, grid 24, 1200×800,
@@ -207,7 +206,7 @@ SciPy FFT with workers=-1 and the black hole enabled in both modes:
 
 This is **63.4 → 57.7 fps**. Each run used 60 warmup frames and 300 measured
 frames, with on/off order alternated. Timing covers physics through the render
-blit; HUD, events, display flip and frame limiting are excluded. Five separate
+blit; HUD, events, display flip, and frame limiting are excluded. Five separate
 900-frame runs with everything active and RuntimeWarnings treated as errors
 stayed finite on every frame, with zero escaped particles. Timing varies on
 this machine; one favourable run is not evidence of reliable headroom.
@@ -220,7 +219,7 @@ These component measurements are from separate runs and should not be summed
 as a substitute for the full-frame comparison. The black-hole force alone
 measured 0.393–0.397 ms/call; the sign switch applies only to the mesh term.
 
-`COLLISION_RADIUS = 0.5 * MPP` means **15 pc**, both the proximity threshold
+`COLLISION_RADIUS = 0.5 * MPP` means **15 pc**for both the proximity threshold
 and hash cell width. Only same-cell pairs are tested; pairs across a cell
 boundary are intentionally missed. This is a decorative sampling approximation,
 not a complete collision census. Each detection batch spawns once. A fixed
@@ -230,7 +229,7 @@ independently of simulation speed. They share the stellar accumulation and blit.
 
 **Flashes are decorative.** Real stellar collisions are vanishingly rare; at
 this resolution each particle stands for 2.4 million solar masses. Two nearby
-particles do not mean two stars touched. No mass, velocity or position is
+particles do not mean two stars touched. No mass, velocity, or position is
 changed by detection or flashes. **Reversed gravity is not physics**: G changes
 only stellar self-gravity, leaving the halo and black hole attractive. A keeps
 the analytic-rails control accessible; mesh polarity has no effect in that mode.

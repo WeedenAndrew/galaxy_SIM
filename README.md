@@ -1,7 +1,7 @@
 # galaxy_SIM
 
-A self-gravitating spiral galaxy 25,000 particles that actually pull on each
-other, in 3D, at 60 fps in Python.
+A self-gravitating galaxy — 25,000 particles that actually pull on each other,
+in 3D, at 60 fps in Python.
 
 Gravity is solved on a particle mesh: the stars are smeared onto a grid,
 Poisson's equation is solved in Fourier space where it becomes a division, and
@@ -9,7 +9,7 @@ the forces are interpolated back. That is how real galaxy simulations do it,
 and it is the only reason 25,000 mutually-attracting bodies run in NumPy at
 all — direct summation would be 312 million pair forces per frame.
 
-[galaxy_SIM](docs/screenshot.png)
+![25,000 self-gravitating particles seen from 42 kpc, 133 Myr into a run](docs/screenshot.png)
 
 ## Run it
 

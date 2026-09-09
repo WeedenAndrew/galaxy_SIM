@@ -55,6 +55,7 @@ detonate the galaxy in one frame.
 |---|---|
 | `config.py` | every constant, with its unit |
 | `galaxy.py` | initial star field, and velocity rebalancing against the mesh |
+| `jeans.py` | setup-only bulge dispersions from the measured total acceleration |
 | `gravity.py` | particle-mesh self-gravity CIC, FFT Poisson, force interpolation |
 | `physics.py` | halo, softened black hole, mesh polarity, optional spiral, leapfrog |
 | `collisions.py` | same-cell proximity detection with guarded quantisation |
@@ -80,6 +81,48 @@ axis; otherwise, the galaxy is tidally torn by copies of itself.
 **The halo stays analytic.** A disc of only visible matter can't hold a flat
 rotation curve; that's the observation dark matter was invented to explain.
 A live disc inside a rigid halo is standard practice in N-body work.
+
+### A distinct, dispersion-supported bulge
+
+The last **18% of particles (4,500 of 25,000)** form a kinematically distinct,
+dispersion-supported bulge. This represents the pressure support from random
+stellar motions characteristic of real galactic bulges, rather than the disc's
+ordered rotation. These stars are visible as orbits circling the centre outside
+the disc plane.
+
+Measured across five RNG seeds over 0.42 Gyr:
+
+| Bulge orbital-plane inclination | Measured | Isotropic theory |
+|---|---:|---:|
+| Median | **60.6°** | 60.0° |
+| Fraction above 30° | **86.9%** | 86.6% |
+| Fraction above 60° | **50.8%** | 50.0% |
+
+Inclination is `acos(abs(Lz) / |L|)`, in the range 0–90°. The bulge inclination
+statistics remain steady while the disc median stays near **2.8°**. Previously,
+planar circular velocities were assigned to spheroidal bulge positions; the
+bulge reached a broadly similar dispersion-supported state by accident through
+relaxation. It now starts as an isotropic, dispersion-supported population by
+construction, rather than falling through the centre to acquire those motions.
+
+At setup, `jeans.py` averages the measured total acceleration (mesh, halo and
+black hole) over 64 directions at each of 512 logarithmically spaced radii.
+The isotropic spherical Jeans equation supplies the velocity dispersion, and
+three independent Gaussian components supply each bulge velocity. The tracer
+integral ends at `MAX_R`, matching the truncated Plummer position sample, with
+zero radial pressure at the boundary. Only bulge velocities are replaced;
+disc velocities remain bit-identical at initialization. The mesh potential's
+arbitrary additive constant is irrelevant here: no absolute escape speed is used.
+
+**The accepted median-radius drift is 1.2–4.6% over 0.42 Gyr.** Jeans specifies
+second moments, not a stationary distribution function, and the disc flattens
+the composite potential, breaking the spherical symmetry assumed by this
+construction. Correcting the tracer boundary lowered outer-tail velocities but
+changed the median drift by at most 0.22 percentage points; it did not remove
+this structural limitation. Closing it would require Schwarzschild or
+made-to-measure modelling, not a velocity fudge factor. This is an approximate
+initial equilibrium, not a claim of an exact stationary DF. All five 4,000-frame
+runs remained finite with RuntimeWarnings treated as errors.
 
 ## Performance
 
@@ -239,7 +282,8 @@ the analytic-rails control accessible; mesh polarity has no effect in that mode.
 with Plummer softening of 5 px (150 pc). Initial velocity rebalancing routes
 through the same acceleration function and includes this force.
 
-Gate 1's initially inner cohort (within 25 px) stayed near 17.6 px on frame one,
+Before Jeans bulge initialization, Gate 1's inner cohort (within 25 px) stayed
+near 17.6 px on frame one,
 but contracted to roughly **13.5–14.0 px after 300 attractive frames** across
 five seeds. This is not a settled inner equilibrium. The **mesh cell is 46.7 px**,
 so the **inner ~15 px has no mesh resolution**: initial velocities include a

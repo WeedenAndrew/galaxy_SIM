@@ -132,8 +132,8 @@ class PMGravity:
         self.escaped = int((~inside).sum())
         return corners
 
-    def accelerate(self, pos, star_mass):
-        """(N,3) acceleration from the stars' own gravity."""
+    def _solve(self, pos, star_mass):
+        """Shared deposition and unchanged FFT solve; return grid and CIC weights."""
         corners = self._weights(pos)
 
         # Deposit dimensionless *counts*, then scale to density afterwards.
@@ -167,12 +167,53 @@ class PMGravity:
 
         phi = _irfftn(_rfftn(self._rho) * self._green_scaled, (self.n2,) * 3)
 
-        # Central differences in place. np.gradient is clearer and allocates
-        # three full grids per call, which measured as a third of the budget.
-        inv2h = 1.0 / (2.0 * self.cell)
+        return phi, corners
+
+    def potential(self, pos, star_mass):
+        """Return (N,) mesh potential in m^2/s^2 at the source particles.
+
+        Uses exactly the force deposition/interpolation CIC weights. A fresh
+        solve avoids stale positions and runs only when explicitly requested.
+        The potential carries an arbitrary additive constant. The FFT fixes it
+        by removing the zero mode: this is a periodic, zero-mean potential,
+        NOT an isolated potential with zero at infinity. Do not interpret
+        sqrt(2*abs(phi)) as an absolute escape speed without fixing that
+        reference and specifying the external halo/black-hole potential.
+        Escaped particles return zero from their zero CIC weights, not a
+        physical potential outside the mesh. The halo and black hole are absent.
+        """
+        phi, corners = self._solve(pos, star_mass)
+        result = np.zeros(pos.shape[0], dtype=np.float64)
+        flat = phi.ravel()
+        for idx, weight in corners:
+            result += flat[idx] * weight
+        return result
+
+    def accelerate(self, pos, star_mass):
+        """(N,3) acceleration from the stars' own gravity."""
+        phi, corners = self._solve(pos, star_mass)
+
         if self._acc.shape[0] != pos.shape[0]:
             self._acc = np.zeros((pos.shape[0], 3))
+        return self._interpolate_force(phi, corners, self._acc)
 
+    def accelerate_at(self, sources, star_mass, probes):
+        """Sample the unchanged source field at massless probe positions.
+
+        Setup-only: probes are never deposited. Keep the source escape count
+        and the normal acceleration buffer untouched by probe interpolation.
+        """
+        phi, _ = self._solve(sources, star_mass)
+        source_escaped = self.escaped
+        try:
+            corners = self._weights(probes)
+        finally:
+            self.escaped = source_escaped
+        return self._interpolate_force(phi, corners, np.zeros_like(probes))
+
+    def _interpolate_force(self, phi, corners, out):
+        # Identical central differences and CIC interpolation for both callers.
+        inv2h = 1.0 / (2.0 * self.cell)
         g_field = np.zeros_like(phi)
         for axis in range(3):
             g_field.fill(0.0)
@@ -185,9 +226,9 @@ class PMGravity:
             # Interpolate back with the *same* CIC weights used to deposit.
             # A different scheme here makes each star feel its own mass and the
             # disc heats until it evaporates.
-            acc = self._acc[:, axis]
+            acc = out[:, axis]
             acc.fill(0.0)
             gf = g_field.ravel()
             for idx, w in corners:
                 acc -= gf[idx] * w
-        return self._acc
+        return out

@@ -99,8 +99,11 @@ def black_hole_acceleration(pos):
     return pos * k[:, None]
 
 
-def acceleration(pos, t, pm=None, star_mass=0.0, polarity=1.0):
+def acceleration(pos, t, pm=None, star_mass=0.0, polarity=1.0, *, sources=None):
     """Acceleration on every star. pos is (N,3); returns (N,3).
+
+    `sources` supplies a separate mass distribution for setup-only probes.
+    Without it, positions are both the sources and evaluation points.
 
     With `pm` supplied, the bulge and disc are not analytic terms — they are
     whatever the stars have actually arranged themselves into, felt through the
@@ -109,7 +112,8 @@ def acceleration(pos, t, pm=None, star_mass=0.0, polarity=1.0):
     to change, and structure that forms was not put there.
     """
     if pm is not None:
-        acc = pm.accelerate(pos, star_mass)
+        acc = (pm.accelerate(pos, star_mass) if sources is None
+               else pm.accelerate_at(sources, star_mass, pos))
         if polarity != 1.0:
             acc *= polarity
         acc += halo_acceleration(pos)

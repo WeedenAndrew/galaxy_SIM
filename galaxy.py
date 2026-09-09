@@ -66,9 +66,12 @@ def build(rng=None):
     z_disc = rng.normal(0.0, C.DISC_THICK, n_disc)
 
     # ── bulge: Plummer sphere, isotropic ────────────────────────────────────
-    u = rng.random(n_bulge)
-    r_b = C.BULGE_R / np.sqrt(np.maximum(u ** (-2.0 / 3.0) - 1.0, 1e-12))
-    r_b = np.minimum(r_b, C.MAX_R)
+    # Conditional Plummer CDF: preserve the radial profile without a shell at MAX_R.
+    # Consume the same random draws so subsequent disc randomness is unchanged.
+    u_max = 1.0 / (1.0 + (C.BULGE_R / C.MAX_R) ** 2) ** 1.5
+    u = rng.random(n_bulge) * u_max
+    u23 = u ** (2.0 / 3.0)
+    r_b = C.BULGE_R * np.sqrt(u23 / (1.0 - u23))  # also finite at u=0
     cos_i = rng.uniform(-1.0, 1.0, n_bulge)
     phi = rng.uniform(0.0, 2 * np.pi, n_bulge)
     sin_i = np.sqrt(1.0 - cos_i**2)
@@ -167,4 +170,8 @@ def rebalance_velocities(pos, vel, pm, star_mass, rng=None):
 
     nu = np.sqrt(np.abs(a_r) / r_safe)
     vel[:, 2] += rng.normal(0.0, 1.0, pos.shape[0]) * nu * C.DISC_THICK
+    # Preserve every original draw above, keeping disc velocities bit-identical.
+    # Only the bulge is overwritten, once, using measured Jeans moments.
+    import jeans
+    jeans.assign(pos, vel, pm, star_mass, rng)
     return vel

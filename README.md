@@ -37,7 +37,7 @@ its source build fails on the removal of `distutils`. pygame-ce is a dropin
 | | |
 | drag | orbit the camera |
 | scroll | zoom |
-| `G` | **reverse** stellar self-gravity: stars repel; halo and black hole still attract |
+| `G` | **reverse** gravity from mass — stars repel and the black hole pushes; the halo still attracts |
 | `H` | collision flashes (decorative, default off) |
 | `A` | live mesh vs. analytic rails, useful as a control |
 | `SPACE` | pause |
@@ -225,6 +225,37 @@ heavy for real two-body encounters, which is part of why the mesh smooths them.
 
 
 ## Black hole, polarity, and decorative collision flashes
+
+### What `G` reverses, and why the black hole is included
+
+**Gravity from mass** — the stars and the black hole. The halo keeps pulling.
+
+The black hole was originally left attractive, on the reasoning that reversing
+everything would scatter the galaxy and leave nothing to look at. That produced
+the opposite of the intended effect: the core got *brighter* under repulsion.
+At 5 px an exaggerated 10⁹ M☉ hole out-pulls the reversed mesh by **130×**, with
+a crossover near 60 px, so a dense remnant stayed trapped while the rest of the
+disc fled — and additive rendering turns a dense remnant into the brightest
+thing on screen.
+
+Measured after 1,200 frames, seed 7, stars remaining inside 25 px from a
+starting 852:
+
+| what reverses | <25 px | median radius |
+|---|---:|---:|
+| mesh only — the original | 424 | 499 px |
+| **mesh + black hole — current** | **99** | **502 px** |
+| mesh + black hole + halo | 0 | 1857 px |
+
+The last row empties the centre completely and costs the galaxy its shape. The
+line is drawn at mass because reversed gravity is not physics in any case; the
+only question is which toy is worth having, and a recognisable object that
+hollows out beats a cloud that does not.
+
+Rails mode (**A**) ignores polarity entirely — it is the unchanged reference to
+compare against when the mesh does something surprising.
+
+### Collision flashes
 
 `COLLISIONS_ENABLED = False` is the default. Gate 4 measured **+1.552 ms/frame**
 for detection, flash updates/spawning, and rendering, exceeding the **0.5 ms**

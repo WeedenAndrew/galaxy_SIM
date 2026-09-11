@@ -133,9 +133,11 @@ def acceleration(pos, t, pm=None, star_mass=0.0, polarity=1.0, *, sources=None):
             -C.G * enclosed_mass(r_safe) * pos[:, 2]
             / (r_safe**2 + pos[:, 2] ** 2 + C.SOFTENING**2) ** 1.5
         )
-
-    if C.BLACK_HOLE_MASS:
-        acc += black_hole_acceleration(pos)
+        # Polarity deliberately does nothing on this path. The point of rails
+        # mode is to be the unchanged reference you compare against when the
+        # mesh does something surprising.
+        if C.BLACK_HOLE_MASS:
+            acc += black_hole_acceleration(pos)
 
     # Optional imposed spiral, off by default now that gravity is live.
     if C.SPIRAL_STRENGTH:
